@@ -1,13 +1,9 @@
 <script>
   import Header from "./UI/Header.svelte";
   import MeetupGrid from "./Meetups/MeetupGrid.svelte";
-
-  let title = "";
-  let subtitle = "";
-  let address = "";
-  let email = "";
-  let description = "";
-  let imageUrl = "";
+  import TextInput from "./UI/TextInput.svelte";
+  import Button from "./UI/Button.svelte";
+  import EditMeetup from "./Meetups/EditMeetup.svelte";
 
   let meetups = [
     {
@@ -19,7 +15,8 @@
       imageUrl:
         "https://s3.amazonaws.com/mentoring.redesign/s3fs-public/Meetup%20Small.png",
       address: "27 Nerd Road, 10000 New York",
-      contactEmail: "code@test.com"
+      contactEmail: "code@test.com",
+      isFavorite: false
     },
     {
       id: "m2",
@@ -29,22 +26,39 @@
       imageUrl:
         "https://i0.wp.com/www.healthline.com/hlcmsresource/images/topic_centers/2019-1/baby_swimming-1200x628-header.jpg?w=1155",
       address: "27 Nerd Road, 10000 New York",
-      contactEmail: "swim@test.com"
+      contactEmail: "swim@test.com",
+      isFavorite: false
     }
   ];
 
-  function addMeetup() {
+  let editMode = null;
+
+  function addMeetup(event) {
     const newMeetup = {
       id: Math.random().toString,
-      title: title,
-      subtitle: subtitle,
-      address: address,
-      imageUrl: imageUrl,
-      contactEmail: email,
-      description: description
+      title: event.detail.title,
+      subtitle: event.detail.subtitle,
+      address: event.detail.address,
+      imageUrl: event.detail.imageUrl,
+      contactEmail: event.detail.email,
+      description: event.detail.description
     };
 
     meetups = [newMeetup, ...meetups];
+    editMode = null;
+  }
+
+  function toggleFavorite(event) {
+    const id = event.detail;
+    const updatedMeetup = { ...meetups.find(m => m.id === id) };
+    updatedMeetup.isFavorite = !updatedMeetup.isFavorite;
+    const meetupIndex = meetups.findIndex(m => m.id === id);
+    const updatedMeetups = [...meetups];
+    updatedMeetups[meetupIndex] = updatedMeetup;
+    meetups = updatedMeetups;
+  }
+  function cancelEdit() {
+    editMode = null;
   }
 </script>
 
@@ -52,37 +66,20 @@
   main {
     margin-top: 5rem;
   }
+
+  .meetup-controls {
+    margin: 1rem;
+  }
 </style>
 
 <Header />
 
 <main>
-  <form on:submit|preventDefault={addMeetup}>
-    <div class="form-control">
-      <label for="title">Title</label>
-      <input type="text" id="title" bind:value={title} />
-    </div>
-    <div class="form-control">
-      <label for="subtitle">Subtitle</label>
-      <input type="text" id="subtitle" bind:value={subtitle} />
-    </div>
-    <div class="form-control">
-      <label for="address">Address</label>
-      <input type="text" id="address" bind:value={address} />
-    </div>
-    <div class="form-control">
-      <label for="imageUrl">Image URL</label>
-      <input type="text" id="imageUrl" bind:value={imageUrl} />
-    </div>
-    <div class="form-control">
-      <label for="email">Email Address</label>
-      <input type="email" id="email" bind:value={email} />
-    </div>
-    <div class="form-control">
-      <label for="Description">Description</label>
-      <textarea rows="3" id="description" bind:value={description} />
-    </div>
-    <button type="submit">Save</button>
-  </form>
-  <MeetupGrid {meetups} />
+  <div class="meetup-controls">
+    <Button on:click={() => (editMode = 'add')}>New Meetup</Button>
+  </div>
+  {#if editMode === 'add'}
+    <EditMeetup on:save={addMeetup} on:cancel={cancelEdit} />
+  {/if}
+  <MeetupGrid {meetups} on:togglefavorite={toggleFavorite} />
 </main>
