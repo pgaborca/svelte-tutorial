@@ -1,4 +1,5 @@
 <script>
+  import meetups from "./meetup-store.js";
   import { createEventDispatcher } from "svelte";
   import TextInput from "../UI/TextInput.svelte";
   import Button from "../UI/Button.svelte";
@@ -33,14 +34,16 @@
   }
 
   function submitForm() {
-    dispatch("save", {
-      title,
-      subtitle,
-      address,
-      imageUrl,
-      email,
-      description
-    });
+    const meetupData = {
+      title: title,
+      subtitle: subtitle,
+      address: address,
+      imageUrl: imageUrl,
+      contactEmail: email,
+      description: description
+    };
+    meetups.addMeetup(meetupData);
+    dispatch("save");
   }
 </script>
 
@@ -96,7 +99,7 @@
       validityMessage="Please enter a valid description"
       contrtolType="textarea"
       value={description}
-      bind:value={description} />
+      on:input={event => (description = event.target.value)} />
   </form>
   <div slot="footer">
     <Button type="button" mode="outline" on:click={cancel}>Cancel</Button>
